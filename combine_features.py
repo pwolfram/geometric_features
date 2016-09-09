@@ -8,6 +8,7 @@ single feature definition, which is placed in (or appended to) features.geojson.
 """
 
 import json
+import shutil
 import argparse
 from collections import defaultdict
 from utils.feature_write_utils import write_all_features
@@ -27,6 +28,9 @@ parser.add_argument("-f", "--feature_file", dest="feature_file",
 parser.add_argument("-n", "--new_feature_name", dest="new_feature_name",
                     help="The new name of the combined feature",
                     metavar="NAME", required=True)
+parser.add_argument("-o", "--output", dest="output_file_name",
+                    help="Output file, e.g., features.geojson.",
+                    metavar="PATH", default="features.geojson")
 
 args = parser.parse_args()
 
@@ -96,5 +100,7 @@ write_all_features(features, out_file, '\t\t')
 out_file.write('\n')
 out_file.write('\t]\n')
 out_file.write('}\n')
+
+shutil.move(out_file_name, args.output_file_name)
 
 # vim: foldmethod=marker ai ts=4 sts=4 et sw=4 ft=python
