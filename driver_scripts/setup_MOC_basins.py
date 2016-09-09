@@ -17,84 +17,55 @@ options, args = parser.parse_args()
 
 defaultFileName = 'features.geojson'
 
-if os.path.exists(defaultFileName):
-    os.remove(defaultFileName)
 
-basinName = 'Atlantic'
-print " * merging features to make %s Basin"%basinName
-MOCName =  '%s_MOC.geojson'%basinName
-imageName =  '%s_MOC.png'%basinName
-basinFileName =  '%s_Basin.geojson'%basinName
-for oceanName in ['Atlantic', 'Mediterranean']:
-    tag = '%s_Basin'%oceanName
-    MOCMaskFileName = 'ocean/region/MOC_mask_30S/region.geojson'
+subBasins = {}
+subBasins['Atlantic'] = ['Atlantic', 'Mediterranean']
+subBasins['IndoPacific'] = ['Pacific', 'Indian']
+subBasins['Pacific'] = ['Pacific']
+subBasins['Indian'] = ['Indian']
 
-    args = ['./merge_features.py', '-d', 'ocean', '-t', tag]
-    subprocess.check_call(args, env=os.environ.copy())
-
-shutil.move(defaultFileName,basinFileName)
-
-print " * masking out features south of MOC region"
-args = ['./difference_features.py', '-f', basinFileName, '-m', MOCMaskFileName]
-subprocess.check_call(args, env=os.environ.copy())
-
-shutil.move(defaultFileName,MOCName)
-
-if options.plot:
-    args = ['./plot_features.py', '-f', MOCName, '-o', imageName, '-m', 'cyl']
-    subprocess.check_call(args, env=os.environ.copy())
+MOCMaskFileNames = {}
+MOCMaskFileNames['Atlantic'] = 'ocean/region/MOC_mask_30S/region.geojson'
+MOCMaskFileNames['IndoPacific'] = 'ocean/region/MOC_mask_30S/region.geojson'
+MOCMaskFileNames['Pacific'] = 'ocean/region/MOC_mask_6S/region.geojson'
+MOCMaskFileNames['Indian'] = 'ocean/region/MOC_mask_6S/region.geojson'
 
 
+for basinName in subBasins:
 
-if os.path.exists(defaultFileName):
-    os.remove(defaultFileName)
-
-basinName = 'IndoPacific'
-print " * merging features to make %s Basin"%basinName
-MOCName =  '%s_MOC.geojson'%basinName
-imageName =  '%s_MOC.png'%basinName
-basinFileName =  '%s_Basin.geojson'%basinName
-for oceanName in ['Pacific', 'Indian']:
-    tag = '%s_Basin'%oceanName
-    MOCMaskFileName = 'ocean/region/MOC_mask_30S/region.geojson'
-
-    args = ['./merge_features.py', '-d', 'ocean', '-t', tag]
-    subprocess.check_call(args, env=os.environ.copy())
-
-shutil.move(defaultFileName,basinFileName)
-
-print " * masking out features south of MOC region"
-args = ['./difference_features.py', '-f', basinFileName, '-m', MOCMaskFileName]
-subprocess.check_call(args, env=os.environ.copy())
-
-shutil.move(defaultFileName,MOCName)
-
-if options.plot:
-    args = ['./plot_features.py', '-f', MOCName, '-o', imageName, '-m', 'cyl']
-    subprocess.check_call(args, env=os.environ.copy())
-
-
-for oceanName in ['Pacific', 'Indian']:
-    tag = '%s_Basin'%oceanName
-    basinFileName =  '%s_Basin.geojson'%oceanName
-    MOCName =  '%s_MOC.geojson'%oceanName
-    imageName =  '%s_MOC.png'%oceanName
-    MOCMaskFileName = 'ocean/region/MOC_mask_6S/region.geojson'
     if os.path.exists(defaultFileName):
         os.remove(defaultFileName)
 
-    print " * merging features to make %s Basin"%oceanName
-    args = ['./merge_features.py', '-d', 'ocean', '-t', tag]
-    subprocess.check_call(args, env=os.environ.copy())
-
+    print " * merging features to make %s Basin"%basinName
+    MOCName =  '%s_MOC.geojson'%basinName
+    imageName =  '%s_MOC.png'%basinName
+    basinFileName =  '%s_Basin.geojson'%basinName
+    for oceanName in subBasins[basinName]:
+        tag = '%s_Basin'%oceanName
+    
+        args = ['./merge_features.py', '-d', 'ocean', '-t', tag]
+        subprocess.check_call(args, env=os.environ.copy())
+    
     shutil.move(defaultFileName,basinFileName)
-
-    print " * masking out features south of MOC region"
-    args = ['./difference_features.py', '-f', basinFileName, '-m', MOCMaskFileName]
+    
+    #merge the the features into a single file
+    print " * combining features into single feature named %s_MOC"%basinName
+    args = ['./combine_features.py', '-f', basinFileName, '-n', '%s_MOC'%basinName]
+    #print ' '.join(args)
     subprocess.check_call(args, env=os.environ.copy())
-
+    
+    shutil.move(defaultFileName,basinFileName)
+    
+    print " * masking out features south of MOC region"
+    args = ['./difference_features.py', '-f', basinFileName, '-m', MOCMaskFileNames[basinName]]
+    subprocess.check_call(args, env=os.environ.copy())
+    
     shutil.move(defaultFileName,MOCName)
-
+    
     if options.plot:
         args = ['./plot_features.py', '-f', MOCName, '-o', imageName, '-m', 'cyl']
         subprocess.check_call(args, env=os.environ.copy())
+    
+    
+if os.path.exists(defaultFileName):
+    os.remove(defaultFileName)
