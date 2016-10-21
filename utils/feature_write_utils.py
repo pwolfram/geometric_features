@@ -86,9 +86,15 @@ def _check_feature(feature):  # {{{
     feature['properties']['object'] = object_type
 
     # Make the properties an ordered dictionary so they can be sorted
-    outProperties = OrderedDict()
+    outProperties = OrderedDict(
+            (('name', feature['properties']['name']),
+             ('tags', feature['properties']['tags']),
+             ('object', feature['properties']['object']),
+             ('component', feature['properties']['component']),
+             ('author', feature['properties']['author'])))
     for key in sorted(feature['properties']):
-        outProperties[key] = feature['properties'][key]
+        if key not in outProperties.keys():
+            outProperties[key] = feature['properties'][key]
 
     # Make the geometry an ordered dictionary so they can keep it in the
     # desired order
